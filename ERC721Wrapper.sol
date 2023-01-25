@@ -1,18 +1,51 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0
+/**
+ *   __  __     __   __       __     __  __     ______     ______      ______     ______     __     ______     __  __     ______    
+ *  /\ \/\ \   /\ "-.\ \     /\ \   /\ \/\ \   /\  ___\   /\__  _\    /\  == \   /\  == \   /\ \   /\  ___\   /\ \/ /    /\  ___\   
+ *  \ \ \_\ \  \ \ \-.  \   _\_\ \  \ \ \_\ \  \ \___  \  \/_/\ \/    \ \  __<   \ \  __<   \ \ \  \ \ \____  \ \  _"-.  \ \___  \  
+ *   \ \_____\  \ \_\\"\_\ /\_____\  \ \_____\  \/\_____\    \ \_\     \ \_____\  \ \_\ \_\  \ \_\  \ \_____\  \ \_\ \_\  \/\_____\ 
+ *    \/_____/   \/_/ \/_/ \/_____/   \/_____/   \/_____/     \/_/      \/_____/   \/_/ /_/   \/_/   \/_____/   \/_/\/_/   \/_____/ 
+ *
+ * @title   Wrapper
+ * @author  blockbento
+ * @notice  
+*/                            
+
 pragma solidity ^0.8.11;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC1155Receiver.sol";
+// ---------- CORE
+// Emnumerable Upgradeable ERC721 contract
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 
-contract ERC721Wrapper is ERC721, IERC1155Receiver {
+import "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
+
+// ---------- FEATURES
+import "./extension/ContractMetadata.sol";
+import "./extension/Royalty.sol";
+import "./extension/Ownable.sol";
+import "./extension/PermissionsEnumerable.sol";
+import { TokenStore, ERC1155Receiver, IERC1155Receiver } from "extension/TokenStore.sol";
+
+contract Multiwrapper is 
+  Initializable,
+  ContractMetadata,
+  Royalty,
+  Ownable,
+  ERC721Upgradeable, IERC1155ReceiverUpgradeable 
+
+
+
+{
   error NotTokenOwnerError();
 
-  IERC721 public collection;
+  IERC721Upgradeable public collection;
 
   mapping(uint256 => bool) internal _hasBeenWrappedBefore;
 
-  constructor(string memory name, string memory symbol, address collectionAddress) ERC721(name, symbol) {
-    collection = IERC721(collectionAddress);
+  constructor(string memory name, string memory symbol, address collectionAddress) ERC721Upgradeable(name, symbol) {
+    collection = IERC721Upgradeable(collectionAddress);
   }
 
   function _wrap(uint256 id) internal {
